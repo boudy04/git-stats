@@ -17,7 +17,8 @@ public class AuthorsCommand implements Callable<Integer> {
     public Integer call() {
         try {
             String log = new GitRunner().runGitLog(repoPath);
-            List<Commit> commits = new LogParser().parse(log);
+            LogParser parser = new LogParser();
+            List<Commit> commits = parser.parse(log);
             if (commits.isEmpty()) {
                 System.out.println("No commits found.");
                 return 1;
@@ -26,6 +27,9 @@ public class AuthorsCommand implements Callable<Integer> {
             System.out.printf("%-25s %8s %8s%n", "Author", "Commits", "%");
             for (StatsAggregator.AuthorStat s : stats) {
                 System.out.printf("%-25s %8d %7.1f%%%n", s.author(), s.commits(), s.percent());
+            }
+            if (parser.malformedCount() > 0) {
+                System.err.println("Warning: " + parser.malformedCount() + " malformed line(s) skipped.");
             }
             return 0;
         } catch (IllegalStateException e) {

@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 public class LogParser {
 
     private static final Pattern STAT = Pattern.compile("^(\\d+|-)\\t(\\d+|-)\\t(.*)$");
-    private static final Pattern AUTHOR = Pattern.compile("^[\\p{L}\\p{N}][\\p{L}\\p{N} ._'\\[\\]]*$");
     private int malformed = 0;
 
     public int malformedCount() {
@@ -38,14 +37,19 @@ public class LogParser {
                 int added = m.group(1).equals("-") ? 0 : Integer.parseInt(m.group(1));
                 int deleted = m.group(2).equals("-") ? 0 : Integer.parseInt(m.group(2));
                 current.changes().add(new FileChange(unquote(m.group(3)), added, deleted));
-            } else if (AUTHOR.matcher(line.strip()).matches()) {
+            } else if (isStatShaped(line)) {
+                malformed++;
+            } else {
                 current = new Commit(line.strip(), new ArrayList<>());
                 commits.add(current);
-            } else {
-                malformed++;
             }
         }
         return commits;
+    }
+
+    private static boolean isStatShaped(String line) {
+        char first = line.charAt(0);
+        return (first == '-' || Character.isDigit(first)) && line.indexOf('\t') > 0;
     }
 
     private String unquote(String path) {

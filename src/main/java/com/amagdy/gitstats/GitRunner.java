@@ -1,6 +1,7 @@
 package com.amagdy.gitstats;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class GitRunner {
 
@@ -10,8 +11,8 @@ public class GitRunner {
         pb.redirectErrorStream(false);
         try {
             Process p = pb.start();
-            String out = new String(p.getInputStream().readAllBytes());
-            String err = new String(p.getErrorStream().readAllBytes());
+            String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            String err = new String(p.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
             int code = p.waitFor();
             if (code != 0) {
                 throw new IllegalStateException(

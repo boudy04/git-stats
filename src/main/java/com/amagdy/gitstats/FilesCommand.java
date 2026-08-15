@@ -17,7 +17,8 @@ public class FilesCommand implements Callable<Integer> {
     public Integer call() {
         try {
             String log = new GitRunner().runGitLog(repoPath);
-            List<Commit> commits = new LogParser().parse(log);
+            LogParser parser = new LogParser();
+            List<Commit> commits = parser.parse(log);
             if (commits.isEmpty()) {
                 System.out.println("No commits found.");
                 return 1;
@@ -26,6 +27,9 @@ public class FilesCommand implements Callable<Integer> {
             System.out.printf("%-30s %8s %8s %8s%n", "File", "Commits", "+", "-");
             for (StatsAggregator.FileStat s : stats) {
                 System.out.printf("%-30s %8d %8d %8d%n", s.path(), s.commits(), s.added(), s.deleted());
+            }
+            if (parser.malformedCount() > 0) {
+                System.err.println("Warning: " + parser.malformedCount() + " malformed line(s) skipped.");
             }
             return 0;
         } catch (IllegalStateException e) {

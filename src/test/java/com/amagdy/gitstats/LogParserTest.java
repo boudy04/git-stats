@@ -56,12 +56,14 @@ class LogParserTest {
     void skipsMalformedLinesAndCountsThem() {
         String log = """
                 Alice
-                not-a-stat-line
+                12\tX\tfile.txt
                 1\t1\ta.txt
                 """;
         List<Commit> commits = parser.parse(log);
         assertEquals(1, commits.size());
+        assertEquals("Alice", commits.get(0).author());
         assertEquals(1, commits.get(0).changes().size());
+        assertEquals("a.txt", commits.get(0).changes().get(0).path());
         assertEquals(1, parser.malformedCount());
     }
 
