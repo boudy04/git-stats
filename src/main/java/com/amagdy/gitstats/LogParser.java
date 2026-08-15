@@ -37,7 +37,10 @@ public class LogParser {
             } else if (isStatShaped(line)) {
                 malformed++;
             } else {
-                current = new Commit(line.strip(), new ArrayList<>());
+                int bar = line.lastIndexOf('|');
+                String author = bar >= 0 ? line.substring(0, bar) : line;
+                String date = bar >= 0 ? line.substring(bar + 1) : "";
+                current = new Commit(author.strip(), date.strip(), new ArrayList<>());
                 commits.add(current);
             }
         }

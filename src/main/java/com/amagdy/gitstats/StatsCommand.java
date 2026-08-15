@@ -9,7 +9,7 @@ import picocli.CommandLine.Spec;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-@Command(description = "Top entries for a git repo.")
+@Command(description = "Git history stats.")
 public class StatsCommand implements Callable<Integer> {
 
     @Spec
@@ -21,26 +21,52 @@ public class StatsCommand implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        boolean files = spec.commandLine().getCommandName().equals("files");
+        String mode = spec.commandLine().getCommandName();
         try {
-            String log = new GitRunner().runGitLog(repoPath);
+            GitRunner git = new GitRunner();
             LogParser parser = new LogParser();
-            List<Commit> commits = parser.parse(log);
+            List<Commit> commits = parser.parse(git.runGitLog(repoPath));
             if (commits.isEmpty()) {
                 System.out.println("No commits found.");
                 return 1;
             }
-            if (files) {
-                List<StatsAggregator.FileStat> stats = new StatsAggregator().fileStats(commits);
-                System.out.printf("%-30s %8s %8s %8s%n", "File", "Commits", "+", "-");
-                for (StatsAggregator.FileStat s : stats) {
-                    System.out.printf("%-30s %8d %8d %8d%n", s.path(), s.commits(), s.added(), s.deleted());
+            StatsAggregator agg = new StatsAggregator();
+            switch (mode) {
+                case "files" -> {
+                    List<StatsAggregator.FileStat> stats = agg.fileStats(commits);
+                    System.out.printf("%-30s %8s %8s %8s%n", "File", "Commits", "+", "-");
+                    for (StatsAggregator.FileStat s : stats) {
+                        System.out.printf("%-30s %8d %8d %8d%n", s.path(), s.commits(), s.added(), s.deleted());
+                    }
                 }
-            } else {
-                List<StatsAggregator.AuthorStat> stats = new StatsAggregator().authorStats(commits);
-                System.out.printf("%-25s %8s %8s%n", "Author", "Commits", "%");
-                for (StatsAggregator.AuthorStat s : stats) {
-                    System.out.printf("%-25s %8d %7.1f%%%n", s.author(), s.commits(), s.percent());
+                case "activity" -> {
+                    List<StatsAggregator.ActivityStat> stats = agg.activityStats(commits);
+                    System.out.printf("%-12s %8s%n", "Date", "Commits");
+                    for (StatsAggregator.ActivityStat s : stats) {
+                        System.out.printf("%-12s %8d%n", s.date(), s.commits());
+                    }
+                }
+                case "dirs" -> {
+                    List<StatsAggregator.DirStat> stats = agg.dirStats(commits);
+                    System.out.printf("%-25s %8s %8s %8s%n", "Directory", "Commits", "+", "-");
+                    for (StatsAggregator.DirStat s : stats) {
+                        System.out.printf("%-25s %8d %8d %8d%n", s.dir(), s.commits(), s.added(), s.deleted());
+                    }
+                }
+                case "repo" -> {
+                    StatsAggregator.RepoStat s = agg.repoSummary(commits, git.countMerges(repoPath), git.countBranches(repoPath), git.countTags(repoPath));
+                    System.out.println("Total commits: " + s.totalCommits());
+                    System.out.println("Contributors:  " + s.contributors());
+                    System.out.println("Merge commits: " + s.merges());
+                    System.out.println("Branches:      " + s.branches());
+                    System.out.println("Tags:          " + s.tags());
+                }
+                default -> {
+                    List<StatsAggregator.AuthorStat> stats = agg.authorStats(commits);
+                    System.out.printf("%-25s %8s %8s%n", "Author", "Commits", "%");
+                    for (StatsAggregator.AuthorStat s : stats) {
+                        System.out.printf("%-25s %8d %7.1f%%%n", s.author(), s.commits(), s.percent());
+                    }
                 }
             }
             if (parser.malformedCount() > 0) {
