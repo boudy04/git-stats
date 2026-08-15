@@ -4,6 +4,9 @@ A tiny Java 21 CLI that analyzes a git repository's history and reports:
 
 - **authors** — commits per author (count + % of total)
 - **files** — top files by churn (commits, lines added, lines removed)
+- **activity** — commits per day (time series)
+- **dirs** — churn bucketed by top-level directory
+- **repo** — summary: total commits, contributors, merges, branches, tags
 
 Built with Maven + picocli + JUnit 5. Required: git on PATH, Java 21.
 
@@ -22,6 +25,15 @@ java -jar target/git-stats-1.0.0.jar authors
 
 # files, a specific repo
 java -jar target/git-stats-1.0.0.jar files /path/to/repo
+
+# commits per day
+java -jar target/git-stats-1.0.0.jar activity
+
+# churn by directory
+java -jar target/git-stats-1.0.0.jar dirs
+
+# repo summary (merges, branches, tags)
+java -jar target/git-stats-1.0.0.jar repo
 ```
 
 ## Sample output
@@ -49,5 +61,5 @@ mvn verify                       # tests + package
 ## Architecture
 
 `GitRunner` → `git log --numstat` → `LogParser` (Commit records) → `StatsAggregator`
-→ `StatsCommand` (picocli, `authors`/`files` modes). Pure logic in `LogParser` and
-`StatsAggregator` is unit-tested; the CLI/subprocess layer is thin.
+→ `StatsCommand` (picocli, `authors`/`files`/`activity`/`dirs`/`repo` modes). Pure logic
+in `LogParser` and `StatsAggregator` is unit-tested; the CLI/subprocess layer is thin.
