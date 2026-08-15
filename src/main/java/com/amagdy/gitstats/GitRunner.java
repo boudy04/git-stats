@@ -8,7 +8,6 @@ public class GitRunner {
     public String runGitLog(String repoPath) {
         ProcessBuilder pb = new ProcessBuilder(
                 "git", "-C", repoPath, "log", "--numstat", "--pretty=format:%an");
-        pb.redirectErrorStream(false);
         try {
             Process p = pb.start();
             String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);

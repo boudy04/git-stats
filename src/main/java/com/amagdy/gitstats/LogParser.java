@@ -1,8 +1,5 @@
 package com.amagdy.gitstats;
 
-import com.amagdy.gitstats.model.Commit;
-import com.amagdy.gitstats.model.FileChange;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;

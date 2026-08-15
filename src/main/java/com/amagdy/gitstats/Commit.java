@@ -1,4 +1,4 @@
-package com.amagdy.gitstats.model;
+package com.amagdy.gitstats;
 
 import java.util.List;
 

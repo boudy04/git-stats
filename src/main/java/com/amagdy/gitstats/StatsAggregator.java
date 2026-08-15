@@ -1,8 +1,5 @@
 package com.amagdy.gitstats;
 
-import com.amagdy.gitstats.model.Commit;
-import com.amagdy.gitstats.model.FileChange;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

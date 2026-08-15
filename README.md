@@ -49,5 +49,5 @@ mvn verify                       # tests + package
 ## Architecture
 
 `GitRunner` → `git log --numstat` → `LogParser` (Commit records) → `StatsAggregator`
-→ `AuthorsCommand` / `FilesCommand` (picocli). Pure logic in `LogParser` and
+→ `StatsCommand` (picocli, `authors`/`files` modes). Pure logic in `LogParser` and
 `StatsAggregator` is unit-tested; the CLI/subprocess layer is thin.

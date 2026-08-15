@@ -1,7 +1,5 @@
 package com.amagdy.gitstats;
 
-import com.amagdy.gitstats.model.Commit;
-import com.amagdy.gitstats.model.FileChange;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
