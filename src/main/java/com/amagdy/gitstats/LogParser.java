@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class LogParser {
 
     private static final Pattern STAT = Pattern.compile("^(\\d+|-)\\t(\\d+|-)\\t(.*)$");
-    private static final Pattern AUTHOR = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9 .'\\[\\]]*$");
+    private static final Pattern AUTHOR = Pattern.compile("^[\\p{L}\\p{N}][\\p{L}\\p{N} ._'\\[\\]]*$");
     private int malformed = 0;
 
     public int malformedCount() {
