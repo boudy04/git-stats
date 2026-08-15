@@ -1,0 +1,28 @@
+package com.amagdy.gitstats;
+
+import java.io.IOException;
+
+public class GitRunner {
+
+    public String runGitLog(String repoPath) {
+        ProcessBuilder pb = new ProcessBuilder(
+                "git", "-C", repoPath, "log", "--numstat", "--pretty=format:%an");
+        pb.redirectErrorStream(false);
+        try {
+            Process p = pb.start();
+            String out = new String(p.getInputStream().readAllBytes());
+            String err = new String(p.getErrorStream().readAllBytes());
+            int code = p.waitFor();
+            if (code != 0) {
+                throw new IllegalStateException(
+                        "git log failed (exit " + code + "): " + err.strip());
+            }
+            return out;
+        } catch (IOException e) {
+            throw new IllegalStateException("git not found or not a repo: " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("interrupted while running git", e);
+        }
+    }
+}
