@@ -33,12 +33,8 @@ public class StatsCommand implements Callable<Integer> {
             StatsAggregator agg = new StatsAggregator();
             switch (mode) {
                 case "files" -> {
-                    List<StatsAggregator.FileStat> stats = agg.fileStats(commits);
-                    int w = Math.max(30, stats.stream().mapToInt(s -> s.path().length()).max().orElse(30));
-                    System.out.printf("%-" + w + "s %8s %8s %8s%n", "File", "Commits", "+", "-");
-                    for (StatsAggregator.FileStat s : stats) {
-                        System.out.printf("%-" + w + "s %8d %8d %8d%n", s.path(), s.commits(), s.added(), s.deleted());
-                    }
+                    List<StatsAggregator.FileStat> stats = agg.churnStats(commits, FileChange::path);
+                    printChurn("File", stats, 30);
                 }
                 case "activity" -> {
                     List<StatsAggregator.ActivityStat> stats = agg.activityStats(commits);
@@ -48,12 +44,8 @@ public class StatsCommand implements Callable<Integer> {
                     }
                 }
                 case "dirs" -> {
-                    List<StatsAggregator.DirStat> stats = agg.dirStats(commits);
-                    int w = Math.max(25, stats.stream().mapToInt(s -> s.dir().length()).max().orElse(25));
-                    System.out.printf("%-" + w + "s %8s %8s %8s%n", "Directory", "Commits", "+", "-");
-                    for (StatsAggregator.DirStat s : stats) {
-                        System.out.printf("%-" + w + "s %8d %8d %8d%n", s.dir(), s.commits(), s.added(), s.deleted());
-                    }
+                    List<StatsAggregator.FileStat> stats = agg.churnStats(commits, f -> StatsAggregator.topDir(f.path()));
+                    printChurn("Directory", stats, 25);
                 }
                 case "repo" -> {
                     StatsAggregator.RepoStat s = agg.repoSummary(commits, git.countMerges(repoPath), git.countBranches(repoPath), git.countTags(repoPath));
@@ -78,6 +70,14 @@ public class StatsCommand implements Callable<Integer> {
         } catch (IllegalStateException e) {
             System.err.println(e.getMessage());
             return 1;
+        }
+    }
+
+    private static void printChurn(String label, List<StatsAggregator.FileStat> stats, int min) {
+        int w = Math.max(min, stats.stream().mapToInt(s -> s.path().length()).max().orElse(min));
+        System.out.printf("%-" + w + "s %8s %8s %8s%n", label, "Commits", "+", "-");
+        for (StatsAggregator.FileStat s : stats) {
+            System.out.printf("%-" + w + "s %8d %8d %8d%n", s.path(), s.commits(), s.added(), s.deleted());
         }
     }
 }

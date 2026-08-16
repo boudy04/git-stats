@@ -20,7 +20,7 @@ public class GitRunner {
     }
 
     public int countTags(String repoPath) {
-        return countLines(run(repoPath, "tag"));
+        return countLines(run(repoPath, "for-each-ref", "--format=%(refname)", "refs/tags"));
     }
 
     private String run(String repoPath, String... args) {

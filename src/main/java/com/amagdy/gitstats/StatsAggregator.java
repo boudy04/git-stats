@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public class StatsAggregator {
 
     public record AuthorStat(String author, int commits, double percent) {}
     public record FileStat(String path, int commits, int added, int deleted) {}
     public record ActivityStat(String date, int commits) {}
-    public record DirStat(String dir, int commits, int added, int deleted) {}
     public record RepoStat(int totalCommits, int contributors, int merges, int branches, int tags) {}
 
     public List<AuthorStat> authorStats(List<Commit> commits) {
@@ -28,11 +28,11 @@ public class StatsAggregator {
         return out;
     }
 
-    public List<FileStat> fileStats(List<Commit> commits) {
+    public List<FileStat> churnStats(List<Commit> commits, Function<FileChange, String> key) {
         Map<String, int[]> agg = new LinkedHashMap<>(); // [commits, added, deleted]
         for (Commit c : commits) {
             for (FileChange f : c.changes()) {
-                int[] v = agg.computeIfAbsent(f.path(), k -> new int[3]);
+                int[] v = agg.computeIfAbsent(key.apply(f), k -> new int[3]);
                 v[0] += 1;
                 v[1] += f.added();
                 v[2] += f.deleted();
@@ -60,32 +60,12 @@ public class StatsAggregator {
         return out;
     }
 
-    public List<DirStat> dirStats(List<Commit> commits) {
-        Map<String, int[]> agg = new LinkedHashMap<>(); // [commits, added, deleted]
-        for (Commit c : commits) {
-            for (FileChange f : c.changes()) {
-                String dir = topDir(f.path());
-                int[] v = agg.computeIfAbsent(dir, k -> new int[3]);
-                v[0] += 1;
-                v[1] += f.added();
-                v[2] += f.deleted();
-            }
-        }
-        List<DirStat> out = new ArrayList<>();
-        for (var e : agg.entrySet()) {
-            int[] v = e.getValue();
-            out.add(new DirStat(e.getKey(), v[0], v[1], v[2]));
-        }
-        out.sort((a, b) -> Integer.compare(b.commits(), a.commits()));
-        return out;
-    }
-
     public RepoStat repoSummary(List<Commit> commits, int merges, int branches, int tags) {
         int contributors = (int) commits.stream().map(Commit::author).distinct().count();
         return new RepoStat(commits.size(), contributors, merges, branches, tags);
     }
 
-    private static String topDir(String path) {
+    static String topDir(String path) {
         int slash = path.indexOf('/');
         return slash < 0 ? "(root)" : path.substring(0, slash);
     }

@@ -39,7 +39,7 @@ class StatsAggregatorTest {
 
     @Test
     void fileStatsSumChurnAndCount() {
-        List<StatsAggregator.FileStat> s = agg.fileStats(sample());
+        List<StatsAggregator.FileStat> s = agg.churnStats(sample(), FileChange::path);
         // a.txt touched in all 3 commits, b.txt in 1
         assertEquals("a.txt", s.get(0).path());
         assertEquals(3, s.get(0).commits());
@@ -61,13 +61,13 @@ class StatsAggregatorTest {
 
     @Test
     void dirStatsBucketsTopLevel() {
-        List<StatsAggregator.DirStat> s = agg.dirStats(sample());
+        List<StatsAggregator.FileStat> s = agg.churnStats(sample(), f -> StatsAggregator.topDir(f.path()));
         // a.txt in root touched in all 3 commits; src/b.txt in 1
-        assertEquals("(root)", s.get(0).dir());
+        assertEquals("(root)", s.get(0).path());
         assertEquals(3, s.get(0).commits());
         assertEquals(14, s.get(0).added());   // 3+10+1
         assertEquals(2, s.get(0).deleted());  // 1+0+1
-        assertEquals("src", s.get(1).dir());
+        assertEquals("src", s.get(1).path());
         assertEquals(1, s.get(1).commits());
     }
 
@@ -84,8 +84,8 @@ class StatsAggregatorTest {
     @Test
     void emptyInputYieldsEmpty() {
         assertTrue(agg.authorStats(List.of()).isEmpty());
-        assertTrue(agg.fileStats(List.of()).isEmpty());
+        assertTrue(agg.churnStats(List.of(), FileChange::path).isEmpty());
         assertTrue(agg.activityStats(List.of()).isEmpty());
-        assertTrue(agg.dirStats(List.of()).isEmpty());
+        assertTrue(agg.churnStats(List.of(), f -> StatsAggregator.topDir(f.path())).isEmpty());
     }
 }
