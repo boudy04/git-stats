@@ -8,7 +8,7 @@ import java.util.List;
 public class GitRunner {
 
     public String runGitLog(String repoPath) {
-        return run(repoPath, "log", "--numstat", "--date=short", "--pretty=format:%an|%ad");
+        return run(repoPath, "log", "--numstat", "--no-renames", "--date=short", "--pretty=format:%an|%ad");
     }
 
     public int countMerges(String repoPath) {
@@ -16,7 +16,7 @@ public class GitRunner {
     }
 
     public int countBranches(String repoPath) {
-        return countLines(run(repoPath, "branch", "-a"));
+        return countLines(run(repoPath, "for-each-ref", "--format=%(refname)", "refs/heads"));
     }
 
     public int countTags(String repoPath) {
@@ -24,7 +24,9 @@ public class GitRunner {
     }
 
     private String run(String repoPath, String... args) {
-        List<String> cmd = new java.util.ArrayList<>(List.of("git", "-C", repoPath));
+        String gitCmd = args[0];
+        List<String> cmd = new java.util.ArrayList<>(
+                List.of("git", "-C", repoPath, "-c", "core.quotepath=false"));
         cmd.addAll(Arrays.asList(args));
         ProcessBuilder pb = new ProcessBuilder(cmd);
         try {
@@ -33,12 +35,18 @@ public class GitRunner {
             String err = new String(p.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
             int code = p.waitFor();
             if (code != 0) {
+                if (err.contains("does not have any commits yet")) {
+                    return "";
+                }
                 throw new IllegalStateException(
-                        "git " + args[0] + " failed (exit " + code + "): " + err.strip());
+                        "git " + gitCmd + " failed (exit " + code + "): " + err.strip());
             }
             return out;
         } catch (IOException e) {
-            throw new IllegalStateException("git not found or not a repo: " + e.getMessage(), e);
+            if (e.getMessage() != null && e.getMessage().contains("CreateProcess")) {
+                throw new IllegalStateException("git executable not found on PATH", e);
+            }
+            throw new IllegalStateException("could not run git: " + e.getMessage(), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("interrupted while running git", e);

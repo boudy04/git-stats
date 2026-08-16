@@ -34,9 +34,10 @@ public class StatsCommand implements Callable<Integer> {
             switch (mode) {
                 case "files" -> {
                     List<StatsAggregator.FileStat> stats = agg.fileStats(commits);
-                    System.out.printf("%-30s %8s %8s %8s%n", "File", "Commits", "+", "-");
+                    int w = Math.max(30, stats.stream().mapToInt(s -> s.path().length()).max().orElse(30));
+                    System.out.printf("%-" + w + "s %8s %8s %8s%n", "File", "Commits", "+", "-");
                     for (StatsAggregator.FileStat s : stats) {
-                        System.out.printf("%-30s %8d %8d %8d%n", s.path(), s.commits(), s.added(), s.deleted());
+                        System.out.printf("%-" + w + "s %8d %8d %8d%n", s.path(), s.commits(), s.added(), s.deleted());
                     }
                 }
                 case "activity" -> {
@@ -48,9 +49,10 @@ public class StatsCommand implements Callable<Integer> {
                 }
                 case "dirs" -> {
                     List<StatsAggregator.DirStat> stats = agg.dirStats(commits);
-                    System.out.printf("%-25s %8s %8s %8s%n", "Directory", "Commits", "+", "-");
+                    int w = Math.max(25, stats.stream().mapToInt(s -> s.dir().length()).max().orElse(25));
+                    System.out.printf("%-" + w + "s %8s %8s %8s%n", "Directory", "Commits", "+", "-");
                     for (StatsAggregator.DirStat s : stats) {
-                        System.out.printf("%-25s %8d %8d %8d%n", s.dir(), s.commits(), s.added(), s.deleted());
+                        System.out.printf("%-" + w + "s %8d %8d %8d%n", s.dir(), s.commits(), s.added(), s.deleted());
                     }
                 }
                 case "repo" -> {
