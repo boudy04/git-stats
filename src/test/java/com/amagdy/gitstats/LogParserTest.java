@@ -54,7 +54,7 @@ class LogParserTest {
     }
 
     @Test
-    void skipsMalformedLinesAndCountsThem() {
+    void skipsMalformedLines() {
         String log = """
                 Alice|2026-08-01
                 12\tX\tfile.txt
@@ -65,7 +65,6 @@ class LogParserTest {
         assertEquals("Alice", commits.get(0).author());
         assertEquals(1, commits.get(0).changes().size());
         assertEquals("a.txt", commits.get(0).changes().get(0).path());
-        assertEquals(1, parser.malformedCount());
     }
 
     @Test

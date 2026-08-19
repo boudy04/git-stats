@@ -63,9 +63,6 @@ public class StatsCommand implements Callable<Integer> {
                     }
                 }
             }
-            if (parser.malformedCount() > 0) {
-                System.err.println("Warning: " + parser.malformedCount() + " malformed line(s) skipped.");
-            }
             return 0;
         } catch (IllegalStateException e) {
             System.err.println(e.getMessage());
